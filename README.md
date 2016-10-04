@@ -1,5 +1,5 @@
 # pyEvony
-A client for Evony Age II based on Python
+A client for Evony Age II based on Python 2.7
 
 The client only has the ability to login to an account and register an account on any Evony Age II server at the moment. After logging in or registering it adds the castle ids of all the cities in that accoun to a json file named Alts.json.
 
