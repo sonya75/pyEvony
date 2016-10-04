@@ -26,3 +26,5 @@ It can be used to create accounts on a server and build the city to level 5 to c
 Usage:-
     
     python create.py number_of_accounts server_name
+
+To use create.py, the file roboevony.exe needs to be in the same folder as the rest of these files.
