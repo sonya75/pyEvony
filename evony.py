@@ -18,11 +18,17 @@ class Connection:
 		msg=(struct.pack('>L',size))+msg
 		self.server.sendall(msg)
 	def receivedata(self,buffersize=4,notreceived=True):
-		data=self.server.recv(buffersize)
+		data=''
+		remaining=4
+		while len(data)<4:
+			data=data+(self.server.recv(buffersize))
+			remining=4-len(data)
 		length=struct.unpack('>L',data)[0]
 		data=''
+		remaining=length
 		while len(data)<length:
-			data=data+(self.server.recv(length))
+			data=data+(self.server.recv(remaining))
+			remaining=length-len(data)
 		data=pyamf.decode(data).readElement()
 		return data
 	def close(self):
@@ -67,7 +73,7 @@ class Client:
 		response=self.responsehandler('server.LoginResponse')
 		if response['data']['ok']==-4:
 			self.createnewplayer()
-			resonse=self.responsehandler('common.createNewPlayer')
+			response=self.responsehandler('common.createNewPlayer')
 			self.savelogininfo(response)
 			return
 		self.savelogininfo(response)
