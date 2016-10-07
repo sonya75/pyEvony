@@ -28,3 +28,5 @@ Usage:-
     python create.py number_of_accounts server_name
 
 To use create.py, the file roboevony.exe needs to be in the same folder as the rest of these files.
+
+Currently, the file create.py will only run in Windows because there is a function in it which obtains the location of the SOL files for current location and its specific to windows only.
