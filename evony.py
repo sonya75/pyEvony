@@ -6,11 +6,16 @@ import struct
 import os
 import xml.etree.ElementTree as ET
 import urllib2
+import select
+import socks
 class Connection:
-	def __init__(self,host,port):
+	def __init__(self,host,port,setproxy=False,proxyhost='',proxyport=0):
 		self.server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.server.connect((host,port))
+		if setproxy:
+			self.server=socks.socksocket()
+			self.server.setproxy(socks.PROXY_TYPE_HTTP,proxyhost,proxyport)
+			self.server.settimeout(15)
+		self.server.connect((str(host),port))
 	def sendmessage(self,command,data):
 		msg={'cmd':command,'data':data}
 		msg=pyamf.encode(msg).read()
@@ -21,8 +26,8 @@ class Connection:
 		data=''
 		remaining=4
 		while len(data)<4:
-			data=data+(self.server.recv(buffersize))
-			remining=4-len(data)
+			data=data+(self.server.recv(remaining))
+			remaining=4-len(data)
 		length=struct.unpack('>L',data)[0]
 		data=''
 		remaining=length
@@ -30,11 +35,12 @@ class Connection:
 			data=data+(self.server.recv(remaining))
 			remaining=length-len(data)
 		data=pyamf.decode(data).readElement()
+		print(data)
 		return data
 	def close(self):
 		self.server.close()
 class Client:
-	def __init__(self,server,email,pwd,register=False,zone=5):
+	def __init__(self,server,email='',pwd='',register=False,zone=5,setproxy=False,proxyhost='',proxyport=0):
 		self.user=email
 		self.pwd=pwd
 		self.server=server
@@ -49,8 +55,10 @@ class Client:
 			servers[server]=self.getaddress(server)
 		host=servers[server]
 		port=443
-		self.client=Connection(host,port)
+		self.client=Connection(host,port,setproxy=setproxy,proxyhost=proxyhost,proxyport=proxyport)
 		self.client.sendmessage('gameClient.version','091103_11')
+		if ((email=='')&(pwd=='')):
+			return
 		if register:
 			self.registernewplayer(email,pwd)
 			return
@@ -58,9 +66,11 @@ class Client:
 		data={'user':email,'pwd':pwd}
 		self.client.sendmessage('login',data)
 		self.loginresponsehandler()
-	def registernewplayer(self,email,pwd):
+	def registernewplayer(self,email='',pwd=''):
 		self.client.sendmessage('login.play.without.registration',{})
 		response=self.responsehandler('server.UnregisteredCreatePlayerResponse')
+		if ((email=='')&(pwd=='')):
+			return response
 		self.savelogininfo(response)
 		pwd=(hashlib.sha1(pwd).hexdigest())+'='+(hashlib.md5(pwd).hexdigest())
 		data={'account':email,'password':pwd}
@@ -99,6 +109,10 @@ class Client:
 			while response['cmd']!=param:
 				response=self.client.receivedata()
 		return response
+	def newarmy(self,castleid,newarmyparam):
+		data={'castleId':castleid,'newArmyBean':newarmyparam}
+		self.client.sendmessage('army.newArmy',data)
+		return (self.responsehandler('army.newArmy'))
 	def getaddress(self,server):
 		d=urllib2.urlopen(('http://'+server+'.evony.com/config.xml')).read()
 		d=ET.fromstring(d)
