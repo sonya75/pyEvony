@@ -79,7 +79,7 @@ class Client:
 	def createnewplayer(self):
 		data={'userName': 'liangzhixian_dany', 'faceUrl': 'images/icon/player/faceA8.jpg', 'flag': 'Flag', 'zone': (self.zone), 'castleName': 'City Name', 'sex': 0, 'accountName': None}
 		self.client.sendmessage('common.createNewPlayer',data)
-	def loginresponsehandler(self):
+	def loginresponsehandler(self,checkok=False):
 		response=self.responsehandler('server.LoginResponse')
 		if response['data']['ok']==-4:
 			self.createnewplayer()
@@ -103,11 +103,14 @@ class Client:
 		dump=open('Alts.json','w')
 		json.dump(dumped,dump)
 		dump.close()
-	def responsehandler(self,param='',savelogin=False):
+	def responsehandler(self,param='',savelogin=False,checkok=True):
 		response=self.client.receivedata()
 		if param!='':
 			while response['cmd']!=param:
 				response=self.client.receivedata()
+		if checkok:
+			if response['data']['ok']!=1:
+				raise Exception
 		return response
 	def newarmy(self,castleid,newarmyparam):
 		data={'castleId':castleid,'newArmyBean':newarmyparam}
