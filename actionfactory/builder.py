@@ -5,23 +5,15 @@ class Builder:
 	def createbuilding(self,castleid,positionid,buildingtype):
 		self.city.client.sendmessage('castle.newBuilding',{'castleId':castleid,'positionId':positionid,'buildingType':buildingtype})
 		res=self.city.responsehandler('castle.newBuilding')
-		if res['data']['ok']!=1:
-			raise Exception('Building creation failed.')
 		if self.isBuildTime5MinOrLess(buildingtype,1):
 			self.city.client.sendmessage('castle.speedUpBuildCommand',{'itemId':'free.speed','castleId':castleid,'positionId':positionid})
 			res=self.city.responsehandler('castle.speedUpBuildCommand')
-			if res['data']['ok']!=1:
-				raise Exception('Free speed-up failed.')
 	def upgradebuilding(self,castleid,positionid,buildingtype=-1,currentlevel=0):
 		self.city.client.sendmessage('castle.upgradeBuilding',{'castleId':castleid,'positionId':positionid})
 		res=self.city.responsehandler('castle.upgradeBuilding')
-		if res['data']['ok']!=1:
-			raise Exception('Building upgrade failed')
 		if self.isBuildTime5MinOrLess(buildingtype,currentlevel):
 			self.city.client.sendmessage('castle.speedUpBuildCommand',{'itemId':'free.speed','castleId':castleid,'positionId':positionid})
 			res=self.city.responsehandler('castle.speedUpBuildCommand')
-			if res['data']['ok']!=1:
-				raise Exception('Free speed-up failed.')
 	def isBuildTime5MinOrLess(self,param1,param2):
 		if (param1 == 27)&(param2 == 1):
 			return True
@@ -35,3 +27,6 @@ class Builder:
 			x = x * 2
 			y=y+1
 		return (x <= 300)
+	def speedup(self,castleid,itemid,positionid):
+		self.city.client.sendmessage({'castle.speedUpBuildCommand',{'itemId':itemid,'castleId':castleid,'positionId':positionid}})
+		res=self.city.responsehandler('castle.speedUpBuildCommand')
