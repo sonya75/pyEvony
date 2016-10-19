@@ -18,6 +18,7 @@ class Connection:
 		self.server.connect((str(host),port))
 	def sendmessage(self,command,data):
 		msg={'cmd':command,'data':data}
+		print(msg)
 		msg=pyamf.encode(msg).read()
 		size=len(msg)
 		msg=(struct.pack('>L',size))+msg
@@ -46,6 +47,7 @@ class Client:
 		self.server=server
 		self.created=True
 		self.zone=zone
+		self.registered=False
 		servers={}
 		if os.path.exists('servers.json'):
 			ss=open('servers.json','r').read().strip()
@@ -67,8 +69,12 @@ class Client:
 		self.client.sendmessage('login',data)
 		self.loginresponsehandler()
 	def registernewplayer(self,email='',pwd=''):
+		if self.registered:
+			return self.registerresponse
+		self.registered=True
 		self.client.sendmessage('login.play.without.registration',{})
 		response=self.responsehandler('server.UnregisteredCreatePlayerResponse')
+		self.registerresponse=response
 		if ((email=='')&(pwd=='')):
 			return response
 		self.savelogininfo(response)
@@ -76,6 +82,7 @@ class Client:
 		data={'account':email,'password':pwd}
 		self.client.sendmessage('common.saveUnregisteredPlayer',data)
 		self.responsehandler('common.saveUnregisteredPlayer')
+		return response
 	def createnewplayer(self):
 		data={'userName': 'liangzhixian_dany', 'faceUrl': 'images/icon/player/faceA8.jpg', 'flag': 'Flag', 'zone': (self.zone), 'castleName': 'City Name', 'sex': 0, 'accountName': None}
 		self.client.sendmessage('common.createNewPlayer',data)
@@ -110,7 +117,7 @@ class Client:
 				response=self.client.receivedata()
 		if checkok:
 			if response['data']['ok']!=1:
-				raise Exception
+				raise Exception(response['data']['ok'])
 		return response
 	def newarmy(self,castleid,newarmyparam):
 		data={'castleId':castleid,'newArmyBean':newarmyparam}
