@@ -1,6 +1,6 @@
 from evony import *
 import time
-import webbrowser
+import os
 import sys
 from actionfactory.builder import *
 from actionfactory.quest import *
@@ -13,6 +13,7 @@ scoutpos=sys.argv[4].strip().split(',')
 scoutpos=int(scoutpos[0])+int(scoutpos[1])*800
 def createacc(server,mailguy,declarewar,scoutpos):
 	try:
+		fatalerror=None
 		print("PROGRESSREPORT0")
 		x=Client(server)
 		print("PROGRESSREPORT1")
@@ -395,8 +396,10 @@ def createacc(server,mailguy,declarewar,scoutpos):
 		items.buyitem('player.trick.bxez')
 		print("PROGRESSREPORT91")
 		x.client.sendmessage('shop.useTrickItem',{'itemId':'player.trick.bxez','armyid':0,'castleId':declarewar})
+		fatalerror="You have possibly entered a invalid co-ordinate to declare war on."
 		print("PROGRESSREPORT92")
 		res=x.responsehandler('shop.useTrickItem')
+		fatalerror=None
 		print("PROGRESSREPORT92")
 		quest.completequest(553)
 		print("PROGRESSREPORT93")
@@ -405,8 +408,10 @@ def createacc(server,mailguy,declarewar,scoutpos):
 		items.buyitem('player.trick.lywh')
 		print("PROGRESSREPORT94")
 		x.client.sendmessage('shop.useTrickItem',{'itemId':'player.trick.lywh','armyid':0,'castleId':scoutpos})
+		fatalerror="You have possibly entered a invalid co-ordinate for scouting."
 		print("PROGRESSREPORT94")
 		res=x.responsehandler('shop.useTrickItem')
+		fatalerror=None
 		print("PROGRESSREPORT95")
 		time.sleep(5)
 		print("PROGRESSREPORT95")
@@ -424,7 +429,7 @@ def createacc(server,mailguy,declarewar,scoutpos):
 		print("PROGRESSREPORT98")
 		reporturl=report.split('<reportData reportUrl=\"')[1].split('\"')[0]
 		print("PROGRESSREPORT99")
-		webbrowser.open(reporturl)
+		os.system(("start /max http://"+reporturl))
 		print("PROGRESSREPORT99")
 		print("\n\n")
 		print("PROGRESSREPORT100")
@@ -433,6 +438,13 @@ def createacc(server,mailguy,declarewar,scoutpos):
 		x.close()
 		return reporturl
 	except:
-		x.close()
+		try:
+			x.close()
+		except:
+			pass
+		if fatalerror!=None:
+			print("FATALERROR"+fatalerror)
+			return
 		print("ERRORREPORT")
+		return
 createacc(server,mailguy,declarewar,scoutpos)
