@@ -35,7 +35,7 @@ Currently, the file create.py will only run in Windows because there is a functi
 
 It can be used to scout any city on any server. Although the stone price in that server needs to be below 1 for it to work. Usage:-
 
-    python scout.py sever mailguy declarewarcoord scoutcoord
+    python scout.py server mailguy declarewarcoord scoutcoord
     
 here mailguy is name of a random guy who won't mind getting junk mail and declarewarcoord is co-ordinate of a random city who won't mind getting declares on.
 
