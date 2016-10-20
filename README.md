@@ -33,7 +33,7 @@ Currently, the file create.py will only run in Windows because there is a functi
 
 **scout.py**
 
-It can be used to scout any account on any server. Although the stone price in that server needs to be below 1 for it to work. Usage:-
+It can be used to scout any city on any server. Although the stone price in that server needs to be below 1 for it to work. Usage:-
 
     python scout.py sever mailguy declarewarcoord scoutcoord
     
