@@ -88,9 +88,12 @@ class Client:
 		self.client.sendmessage('common.createNewPlayer',data)
 	def loginresponsehandler(self,checkok=False):
 		response=self.responsehandler('server.LoginResponse',checkok=False)
+		self.registerresponse=response
+		self.registered=True
 		if response['data']['ok']==-4:
 			self.createnewplayer()
 			response=self.responsehandler('common.createNewPlayer')
+			self.registerresponse=response
 			self.savelogininfo(response)
 			return
 		self.savelogininfo(response)
