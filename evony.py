@@ -87,7 +87,7 @@ class Client:
 		data={'userName': 'liangzhixian_dany', 'faceUrl': 'images/icon/player/faceA8.jpg', 'flag': 'Flag', 'zone': (self.zone), 'castleName': 'City Name', 'sex': 0, 'accountName': None}
 		self.client.sendmessage('common.createNewPlayer',data)
 	def loginresponsehandler(self,checkok=False):
-		response=self.responsehandler('server.LoginResponse')
+		response=self.responsehandler('server.LoginResponse',checkok=False)
 		if response['data']['ok']==-4:
 			self.createnewplayer()
 			response=self.responsehandler('common.createNewPlayer')
