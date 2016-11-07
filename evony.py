@@ -9,16 +9,34 @@ import urllib2
 import select
 import socks
 class Connection:
-	def __init__(self,host,port,setproxy=False,proxyhost='',proxyport=0):
+	def __init__(self,host,port,setproxy=False,proxyhost='',proxyport=0,proxytype='HTTP',callback=None,timeout=15):
 		self.server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		self.__callback=callback
 		if setproxy:
 			self.server=socks.socksocket()
-			self.server.setproxy(socks.PROXY_TYPE_HTTP,proxyhost,proxyport)
-			self.server.settimeout(15)
+			if proxytype=='HTTP':
+				self.server.setproxy(socks.PROXY_TYPE_HTTP,proxyhost,proxyport)
+			elif proxytype=='SOCKS4':
+				self.server.setproxy(socks.PROXY_TYPE_SOCKS4,proxyhost,proxyport)
+			else:
+				self.server.setproxy(socks.PROXY_TYPE_SOCKS5,proxyhost,proxyport)
+			if callback!=None:
+				callback("Successfully connected to proxy server")
+			else:
+				print("Successfully connected to proxy server")
+#			self.server.set_proxy(socks.HTTP,proxyhost,proxyport)
+			self.server.settimeout(timeout)
 		self.server.connect((str(host),port))
+		if self.__callback!=None:
+			self.__callback("Successfully connected to server")
+		else:
+			print("Successfully connected to server")
 	def sendmessage(self,command,data):
 		msg={'cmd':command,'data':data}
-		print(msg)
+		if self.__callback!=None:
+			self.__callback(msg)
+		else:
+			print(msg)
 		msg=pyamf.encode(msg).read()
 		size=len(msg)
 		msg=(struct.pack('>L',size))+msg
@@ -27,21 +45,37 @@ class Connection:
 		data=''
 		remaining=4
 		while len(data)<4:
-			data=data+(self.server.recv(remaining))
+			tt=select.select([self.server],[],[],30)
+			if not tt[0]:
+				raise
+			u=self.server.recv(remaining)
+			if u=='':
+				raise
+			data=data+u
 			remaining=4-len(data)
 		length=struct.unpack('>L',data)[0]
 		data=''
 		remaining=length
 		while len(data)<length:
-			data=data+(self.server.recv(remaining))
+			tt=select.select([self.server],[],[],30)
+			if not tt[0]:
+				raise
+			u=self.server.recv(remaining)
+			if u=='':
+				raise
+			data=data+u
 			remaining=length-len(data)
 		data=pyamf.decode(data).readElement()
-		print(data)
+		if self.__callback!=None:
+			self.__callback(data)
+		else:
+			print(data)
 		return data
 	def close(self):
 		self.server.close()
 class Client:
-	def __init__(self,server,email='',pwd='',register=False,zone=5,setproxy=False,proxyhost='',proxyport=0):
+	def __init__(self,server,email='',pwd='',register=False,zone=5,setproxy=False,proxyhost='',proxyport=0,proxytype='HTTP',callback=None,timeout=30):
+		socks.TIMEOUT=timeout
 		self.user=email
 		self.pwd=pwd
 		self.server=server
@@ -57,7 +91,7 @@ class Client:
 			servers[server]=self.getaddress(server)
 		host=servers[server]
 		port=443
-		self.client=Connection(host,port,setproxy=setproxy,proxyhost=proxyhost,proxyport=proxyport)
+		self.client=Connection(host,port,setproxy=setproxy,proxyhost=proxyhost,proxyport=proxyport,proxytype=proxytype,callback=callback,timeout=timeout)
 		self.client.sendmessage('gameClient.version','091103_11')
 		if ((email=='')&(pwd=='')):
 			return
